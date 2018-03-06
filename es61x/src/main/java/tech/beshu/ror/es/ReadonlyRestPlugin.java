@@ -52,6 +52,8 @@ import org.elasticsearch.rest.RestHandler;
 import org.elasticsearch.script.ScriptService;
 import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.watcher.ResourceWatcherService;
+
+import security.RoleIndexSearcherWrapper;
 import tech.beshu.ror.configuration.AllowedSettings;
 import tech.beshu.ror.es.rradmin.RRAdminAction;
 import tech.beshu.ror.es.rradmin.TransportRRAdminAction;
@@ -112,7 +114,16 @@ public class ReadonlyRestPlugin extends Plugin
 
   @Override
   public void onIndexModule(IndexModule indexModule) {
-    super.onIndexModule(indexModule);
+//    super.onIndexModule(indexModule);
+    indexModule.setSearcherWrapper(indexService -> {
+    	try {
+//    		logger.info("Create new RoleIndexSearcher wrapper, [{}]", indexService.getIndexSettings().getIndex().getName());
+    		return new RoleIndexSearcherWrapper(indexService);
+    	}catch (Exception e) {
+			// TODO: handle exception
+		}
+    	return null;
+    });
   }
 
   @Override
