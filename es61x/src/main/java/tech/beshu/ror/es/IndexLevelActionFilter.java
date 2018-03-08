@@ -185,7 +185,7 @@ public class IndexLevelActionFilter extends AbstractComponent implements ActionF
         		if (filter.isPresent()) {
         			String encodedUser = UserTransient.CreateFromFilter(filter.get()).serialize();
         			if (encodedUser == null) 
-						logger.error("Error while serializing token");
+						logger.error("Error while serializing user transient");
 					if (threadPool.getThreadContext().getHeader(Constants.USER_TRANSIENT) == null) {
 						threadPool.getThreadContext().putHeader(Constants.USER_TRANSIENT, encodedUser);
 					}

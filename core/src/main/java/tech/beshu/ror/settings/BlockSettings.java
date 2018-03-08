@@ -47,7 +47,7 @@ public class BlockSettings {
   
   public static final Set<String> ruleModifiersToSkip = Sets.newHashSet(
     NAME, POLICY, VERBOSITY, HostsRuleSettings.ATTRIBUTE_ACCEPT_X_FORWARDED_FOR_HEADER,
-    AuthKeyUnixRuleSettings.ATTRIBUTE_AUTH_CACHE_TTL
+    AuthKeyUnixRuleSettings.ATTRIBUTE_AUTH_CACHE_TTL, FILTER
   );
   private static final BlockPolicy DEFAULT_BLOCK_POLICY = BlockPolicy.ALLOW;
   private static final Verbosity DEFAULT_VERBOSITY = Verbosity.INFO;
