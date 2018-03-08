@@ -33,6 +33,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.util.concurrent.ThreadContext;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
+import org.elasticsearch.env.Environment;
 import org.elasticsearch.index.IndexService;
 import org.elasticsearch.index.IndexSettings;
 import org.elasticsearch.index.engine.EngineException;
@@ -46,12 +47,15 @@ import org.elasticsearch.index.shard.ShardUtils;
 import com.unboundid.util.args.ArgumentException;
 
 import tech.beshu.ror.commons.Constants;
+import tech.beshu.ror.commons.settings.BasicSettings;
+import tech.beshu.ror.commons.shims.es.LoggerShim;
+import tech.beshu.ror.es.ESContextImpl;
 
 /*
  * @author Datasweet <contact@datasweet.fr>
  */
 public class RoleIndexSearcherWrapper extends IndexSearcherWrapper {
-    private final Logger logger;
+    private final LoggerShim logger;
     private final IndexSettings indexSettings;
     private final Function<ShardId, QueryShardContext> queryShardContextProvider;
     private final ThreadContext threadContext;
@@ -62,13 +66,15 @@ public class RoleIndexSearcherWrapper extends IndexSearcherWrapper {
             throw new ArgumentException("Please provide an indexService");
         }
         this.indexSettings = indexService.getIndexSettings();
-		this.logger = Loggers.getLogger(this.getClass(), new String[0]);
+		Logger logger = Loggers.getLogger(this.getClass(), new String[0]);
         this.queryShardContextProvider = shardId -> indexService.newQueryShardContext(shardId.id(), null, null, null);
         this.threadContext = indexService.getThreadPool().getThreadContext();
 
-		Settings configFileSettings = indexSettings.getSettings().getByPrefix("readonlyrest.");
-		
-		this.enabled = configFileSettings.getAsBoolean("enable", false);
+        Settings configFileSettings = indexSettings.getSettings();
+		Environment env = new Environment(configFileSettings, null);
+		this.logger = ESContextImpl.mkLoggerShim(logger);
+		BasicSettings baseSettings = BasicSettings.fromFileObj(this.logger, env.configFile().toAbsolutePath(), configFileSettings);
+		this.enabled = baseSettings.isEnabled();
 	}
 
 	@Override

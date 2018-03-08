@@ -62,7 +62,7 @@ import tech.beshu.ror.es.ESContextImpl;
  * @author Datasweet <contact@datasweet.fr>
  */
 public class RoleIndexSearcherWrapper extends IndexSearcherWrapper {
-    private final Logger logger;
+    private final LoggerShim logger;
     private final IndexSettings indexSettings;
     private final Function<ShardId, QueryShardContext> queryShardContextProvider;
     private final ThreadContext threadContext;
@@ -73,21 +73,15 @@ public class RoleIndexSearcherWrapper extends IndexSearcherWrapper {
             throw new ArgumentException("Please provide an indexService");
         }
         this.indexSettings = indexService.getIndexSettings();
-		this.logger = Loggers.getLogger(this.getClass(), new String[0]);
+		Logger logger = Loggers.getLogger(this.getClass(), new String[0]);
         this.queryShardContextProvider = shardId -> indexService.newQueryShardContext(shardId.id(), null, null);
         this.threadContext = indexService.getThreadPool().getThreadContext();
         logger.info("Create new RoleIndexSearcher wrapper, [{}]", indexService.getIndexSettings().getIndex().getName());
-		try { 
 		Settings configFileSettings = indexSettings.getSettings();
 		Environment env = new Environment(configFileSettings);
-		LoggerShim loggerShim = ESContextImpl.mkLoggerShim(logger);
-		BasicSettings baseSettings = BasicSettings.fromFile(loggerShim, env.configFile().toAbsolutePath(), configFileSettings.getAsStructuredMap());
+		this.logger = ESContextImpl.mkLoggerShim(logger);
+		BasicSettings baseSettings = BasicSettings.fromFile(this.logger, env.configFile().toAbsolutePath(), configFileSettings.getAsStructuredMap());
 		this.enabled = baseSettings.isEnabled();
-		} catch (Exception e) {
-			logger.info(e);
-			logger.info(e.getMessage());
-			throw e;
-		}
 	}
 
 	@Override
