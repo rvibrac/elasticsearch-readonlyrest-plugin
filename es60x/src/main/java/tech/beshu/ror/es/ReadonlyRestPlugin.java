@@ -17,6 +17,14 @@
 
 package tech.beshu.ror.es;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
+
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionResponse;
@@ -34,6 +42,7 @@ import org.elasticsearch.common.util.BigArrays;
 import org.elasticsearch.common.util.concurrent.ThreadContext;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.http.HttpServerTransport;
+import org.elasticsearch.index.IndexModule;
 import org.elasticsearch.indices.breaker.CircuitBreakerService;
 import org.elasticsearch.plugins.ActionPlugin;
 import org.elasticsearch.plugins.IngestPlugin;
@@ -43,18 +52,12 @@ import org.elasticsearch.plugins.ScriptPlugin;
 import org.elasticsearch.rest.RestController;
 import org.elasticsearch.rest.RestHandler;
 import org.elasticsearch.threadpool.ThreadPool;
+
 import tech.beshu.ror.configuration.AllowedSettings;
 import tech.beshu.ror.es.rradmin.RRAdminAction;
 import tech.beshu.ror.es.rradmin.TransportRRAdminAction;
 import tech.beshu.ror.es.rradmin.rest.RestRRAdminAction;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
+import tech.beshu.ror.es.security.RoleIndexSearcherWrapper;
 
 public class ReadonlyRestPlugin extends Plugin
   implements ScriptPlugin, ActionPlugin, IngestPlugin, NetworkPlugin {
@@ -139,4 +142,18 @@ public class ReadonlyRestPlugin extends Plugin
     };
   }
 
+  @Override
+  public void onIndexModule(IndexModule module) {
+	module.setSearcherWrapper(indexService -> {
+		try {
+
+			//IndicesRequestCache.INDEX_CACHE_REQUEST_ENABLED_SETTING.get(indexService.getIndexSettings().getSettings()));
+			return new RoleIndexSearcherWrapper(indexService);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	});
+  }
 }

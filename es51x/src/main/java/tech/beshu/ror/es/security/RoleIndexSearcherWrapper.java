@@ -109,7 +109,7 @@ public class RoleIndexSearcherWrapper extends IndexSearcherWrapper {
 			BooleanQuery.Builder boolQuery = new BooleanQuery.Builder();
             boolQuery.setMinimumNumberShouldMatch(1);
             QueryShardContext queryShardContext = this.queryShardContextProvider.apply(shardId);
-            XContentParser parser = XContentFactory.xContent(filter).createParser(queryShardContext.getXContentRegistry(), filter);
+            XContentParser parser = XContentFactory.xContent(filter).createParser(filter);
             QueryBuilder queryBuilder = queryShardContext.newParseContext(parser).parseInnerQueryBuilder().get();
             ParsedQuery parsedQuery = queryShardContext.toFilter(queryBuilder);
 			boolQuery.add(parsedQuery.query(), BooleanClause.Occur.SHOULD);

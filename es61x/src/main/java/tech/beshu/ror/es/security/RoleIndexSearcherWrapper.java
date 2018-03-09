@@ -31,8 +31,8 @@ import org.elasticsearch.common.logging.LoggerMessageFormat;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.util.concurrent.ThreadContext;
-import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentParser;
+import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.elasticsearch.env.Environment;
 import org.elasticsearch.index.IndexService;
 import org.elasticsearch.index.IndexSettings;
@@ -68,13 +68,13 @@ public class RoleIndexSearcherWrapper extends IndexSearcherWrapper {
         }
         this.indexSettings = indexService.getIndexSettings();
 		Logger logger = Loggers.getLogger(this.getClass(), new String[0]);
-        this.queryShardContextProvider = shardId -> indexService.newQueryShardContext(shardId.id(), null, null);
+        this.queryShardContextProvider = shardId -> indexService.newQueryShardContext(shardId.id(), null, null, null);
         this.threadContext = indexService.getThreadPool().getThreadContext();
-        logger.info("Create new RoleIndexSearcher wrapper, [{}]", indexService.getIndexSettings().getIndex().getName());
-		Settings configFileSettings = indexSettings.getSettings();
-		Environment env = new Environment(configFileSettings);
+
+        Settings configFileSettings = indexSettings.getSettings();
+		Environment env = new Environment(configFileSettings, null);
 		this.logger = ESContextImpl.mkLoggerShim(logger);
-		BasicSettings baseSettings = BasicSettings.fromFile(this.logger, env.configFile().toAbsolutePath(), configFileSettings.getAsStructuredMap());
+		BasicSettings baseSettings = BasicSettings.fromFileObj(this.logger, env.configFile().toAbsolutePath(), configFileSettings);
 		this.enabled = baseSettings.isEnabled();
 	}
 
@@ -87,8 +87,7 @@ public class RoleIndexSearcherWrapper extends IndexSearcherWrapper {
 
 		UserTransient userTransient = UserTransient.Deserialize(threadContext.getHeader(Constants.USER_TRANSIENT));
 		if (userTransient == null) {
-			logger.warn("Couldn't extract userTransient from threadContext.");
-			return reader;
+			throw new IllegalStateException("Couldn't extract userTransient from threadContext.");
 		}
 
         ShardId shardId = ShardUtils.extractShardId(reader);
@@ -109,8 +108,8 @@ public class RoleIndexSearcherWrapper extends IndexSearcherWrapper {
 			BooleanQuery.Builder boolQuery = new BooleanQuery.Builder();
             boolQuery.setMinimumNumberShouldMatch(1);
             QueryShardContext queryShardContext = this.queryShardContextProvider.apply(shardId);
-            XContentParser parser = XContentFactory.xContent(filter).createParser(queryShardContext.getXContentRegistry(), filter);
-            QueryBuilder queryBuilder = queryShardContext.newParseContext(parser).parseInnerQueryBuilder().get();
+            XContentParser parser = JsonXContent.jsonXContent.createParser(queryShardContext.getXContentRegistry(), filter);
+            QueryBuilder queryBuilder = queryShardContext.parseInnerQueryBuilder(parser);
             ParsedQuery parsedQuery = queryShardContext.toFilter(queryBuilder);
 			boolQuery.add(parsedQuery.query(), BooleanClause.Occur.SHOULD);
             reader = DocumentFilterReader.wrap(reader, new ConstantScoreQuery(boolQuery.build()));
