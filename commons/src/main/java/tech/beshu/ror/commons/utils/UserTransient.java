@@ -15,7 +15,7 @@
  *    along with ReadonlyREST.  If not, see http://www.gnu.org/licenses/
  */
 
-package tech.beshu.ror.es.security;
+package tech.beshu.ror.commons.utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
