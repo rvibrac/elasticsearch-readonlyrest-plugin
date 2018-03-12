@@ -87,7 +87,8 @@ public class RoleIndexSearcherWrapper extends IndexSearcherWrapper {
 
 		UserTransient userTransient = UserTransient.Deserialize(threadContext.getHeader(Constants.USER_TRANSIENT));
 		if (userTransient == null) {
-			throw new IllegalStateException("Couldn't extract userTransient from threadContext.");
+			logger.info("Couldn't extract userTransient from threadContext.");
+			return reader;
 		}
 
         ShardId shardId = ShardUtils.extractShardId(reader);

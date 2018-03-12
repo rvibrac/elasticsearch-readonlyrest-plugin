@@ -120,7 +120,6 @@ public class RoleIndexSearcherWrapper extends IndexSearcherWrapper {
 			throw ExceptionsHelper.convertToElastic((Exception) e);
 		}
     }
-    
 
 	@Override
 	protected IndexSearcher wrap(IndexSearcher indexSearcher) throws EngineException {
