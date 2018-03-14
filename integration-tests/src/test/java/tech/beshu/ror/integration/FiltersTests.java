@@ -103,8 +103,8 @@ public class FiltersTests {
 		assertFalse(body.contains("a2"));
 		assertTrue(body.contains("b1"));
 		assertFalse(body.contains("b2"));
-		assertTrue(body.contains("c1"));
-		assertFalse(body.contains("c2"));
+		assertFalse(body.contains("c1"));
+		assertTrue(body.contains("c2"));
 	}
 	
 	@Test
