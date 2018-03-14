@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import static tech.beshu.ror.utils.containers.ESWithReadonlyRestContainer.create;
 
 import java.util.Optional;
+import java.util.Random;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -29,29 +30,33 @@ public class FiltersTests {
 	@ClassRule
 	public static ESWithReadonlyRestContainer container = create(RorPluginGradleProject.fromSystemProperty(),
 			"/filters/elasticsearch.yml", Optional.of(c -> {
-				insertDoc("a1", c, "a");
-				insertDoc("a2", c, "a");
-				insertDoc("b1", c, "bandc");
-				insertDoc("b2", c, "bandc");
-				insertDoc("c1", c, "bandc");
-				insertDoc("c2", c, "bandc");
+				insertDoc("a1", c, "a", "title");
+				insertDoc("a2", c, "a", "title");
+				insertDoc("b1", c, "bandc", "title");
+				insertDoc("b2", c, "bandc", "title");
+				insertDoc("c1", c, "bandc", "title");
+				insertDoc("c2", c, "bandc", "title");
+				insertDoc("d1", c, "d", "title");
+				insertDoc("d2", c, "d", "title");
+				insertDoc("d1", c, "d", "nottitle");
+				insertDoc("d2", c, "d", "nottitle");
 			})
 
 	);
 
-	private static void insertDoc(String docName, RestClient restClient, String idx) {
+	private static void insertDoc(String docName, RestClient restClient, String idx, String field) {
 		if (adminClient == null) {
 			adminClient = restClient;
 		}
 
-		String path = "/" + IDX_PREFIX + idx + "/documents/doc-" + docName;
+		String path = "/" + IDX_PREFIX + idx + "/documents/doc-" + docName + String.valueOf(Math.random());
 		try {
 
 			HttpPut request = new HttpPut(restClient.from(path));
 			request.setHeader("Content-Type", "application/json");
 			request.setHeader("refresh", "true");
 			request.setHeader("timeout", "50s");
-			request.setEntity(new StringEntity("{\"title\": \"" + docName + "\"}"));
+			request.setEntity(new StringEntity("{\"" + field + "\": \"" + docName + "\"}"));
 			System.out.println(body(restClient.execute(request)));
 
 		} catch (Exception e) {
@@ -84,7 +89,7 @@ public class FiltersTests {
 	public void testDirectSingleIdxa() throws Exception {
 		String body = search("/" + IDX_PREFIX + "a/_search");
 		assertTrue(body.contains("a1"));
-		assertTrue(body.contains("a2"));
+		assertFalse(body.contains("a2"));
 		assertFalse(body.contains("b1"));
 		assertFalse(body.contains("b2"));
 		assertFalse(body.contains("c1"));
@@ -92,7 +97,7 @@ public class FiltersTests {
 	}
 	
 	@Test
-	public void testDirectSingleIdxbandc() throws Exception {
+	public void testDirectMultipleIdxbandc() throws Exception {
 		String body = search("/" + IDX_PREFIX + "bandc/_search");
 		assertFalse(body.contains("a1"));
 		assertFalse(body.contains("a2"));
@@ -100,6 +105,21 @@ public class FiltersTests {
 		assertFalse(body.contains("b2"));
 		assertTrue(body.contains("c1"));
 		assertFalse(body.contains("c2"));
+	}
+	
+	@Test
+	public void testDirectSingleIdxd() throws Exception {
+		String body = search("/" + IDX_PREFIX + "d/_search");
+		assertFalse(body.contains("a1"));
+		assertFalse(body.contains("a2"));
+		assertFalse(body.contains("b1"));
+		assertFalse(body.contains("b2"));
+		assertFalse(body.contains("c1"));
+		assertFalse(body.contains("c2"));
+		assertTrue(body.contains("\"title\": \"d1\""));
+		assertFalse(body.contains("\"title\": \"d2\""));
+		assertFalse(body.contains("\"nottitle\": \"d1\""));
+		assertFalse(body.contains("\"nottitle\": \"d2\""));
 	}
 	
 	private String search(String endpoint) throws Exception {

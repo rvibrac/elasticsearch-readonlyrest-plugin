@@ -13,6 +13,21 @@ readonlyrest:
 
   access_control_rules:
 
+  - name: Gettera
+    api_keys: ["g"]
+    indices: ["testfiltera"]
+    filter: "{\"bool\": {\"must\": [{\"term\": {\"title\": {\"value\": \"a1\"}}}]}}"
+    
+  - name: Getterbandc
+    api_keys: ["g"]
+    indices: ["testfilterbandc"]
+    filter: "{\"bool\": {\"should\": [{\"term\": {\"title\": {\"value\": \"b1\"}}},{\"term\": {\"title\": {\"value\": \"c2\"}}}]}}"
+    
+  - name: Getterbandc
+    api_keys: ["g"]
+    indices: ["testfilterd"]
+    filter: "{\"bool\": {\"must\": [{\"term\": {\"title\": {\"value\": \"d1\"}}}]}}"
+    
   # ES container initializer need this rule to configure ES instance after startup
   - name: "CONTAINER ADMIN"
     auth_key: admin:container
@@ -24,13 +39,3 @@ readonlyrest:
   - name: Poller
     api_keys: ["p"]
     verbosity: error
-
-  - name: Gettera
-    api_keys: ["g"]
-    indices: ["testfiltera"]
-    filter: "{\"bool\": {\"should\": [{\"term\": {\"title\": {\"value\": \"a1\"}}},{\"term\": {\"title\": {\"value\": \"a2\"}}}]}}"
-    
-  - name: Getterbandc
-    api_keys: ["g"]
-    indices: ["testfilterbandc"]
-    filter: "{\"bool\": {\"should\": [{\"term\": {\"title\": {\"value\": \"b1\"}}},{\"term\": {\"title\": {\"value\": \"c2\"}}}]}}"
