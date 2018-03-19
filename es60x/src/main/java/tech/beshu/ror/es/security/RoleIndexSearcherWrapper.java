@@ -18,6 +18,7 @@
 package tech.beshu.ror.es.security;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.function.Function;
 
 import org.apache.logging.log4j.Logger;
@@ -100,7 +101,8 @@ public class RoleIndexSearcherWrapper extends IndexSearcherWrapper {
         String indice = shardId.getIndexName();
 
 		String filter = userTransient.getFilter();
-
+		Set<String> fields = userTransient.getFields();
+		
 		if (filter == null || filter.equals("")) {
 			return reader;
         }
@@ -113,7 +115,7 @@ public class RoleIndexSearcherWrapper extends IndexSearcherWrapper {
             QueryBuilder queryBuilder = queryShardContext.parseInnerQueryBuilder(parser);
             ParsedQuery parsedQuery = queryShardContext.toFilter(queryBuilder);
 			boolQuery.add(parsedQuery.query(), BooleanClause.Occur.SHOULD);
-            reader = DocumentFilterReader.wrap(reader, new ConstantScoreQuery(boolQuery.build()));
+            reader = DocumentFilterReader.wrap(reader, new ConstantScoreQuery(boolQuery.build()), fields);
 			return reader;
 		} catch (IOException e) {
 			this.logger.error("Unable to setup document security");

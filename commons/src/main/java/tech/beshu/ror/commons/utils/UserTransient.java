@@ -24,6 +24,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Base64;
+import java.util.Set;
 
 /*
  * @author Datasweet <contact@datasweet.fr>
@@ -31,9 +32,10 @@ import java.util.Base64;
 public class UserTransient implements Serializable {
 	private static final long serialVersionUID = -8866625802695512997L;
     private final String _filter;
+    private final Set<String> _fields;
     
-    public static UserTransient CreateFromFilter(String filter) {
-    	return new UserTransient(filter);
+    public static UserTransient CreateFromFilter(String filter, Set<String> fields) {
+    	return new UserTransient(filter, fields);
     }
     
 //    public static UserTransient CreateFromRequestContext(RequestContext rc, ) {
@@ -76,12 +78,17 @@ public class UserTransient implements Serializable {
 //        }
 //    }
 //
-    private UserTransient(String filter) {
+    private UserTransient(String filter, Set<String> fields) {
         this._filter = filter;
+        this._fields = fields;
     }
 
     public String getFilter() {
     	return this._filter;
+    }
+    
+    public Set<String> getFields() {
+    	return this._fields;
     }
     
     @Override
