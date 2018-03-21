@@ -44,6 +44,7 @@ public class BlockSettings {
   private static final String POLICY = "type";
   private static final String VERBOSITY = "verbosity";
   private static final String FILTER = "filter";
+  private static final String FIELDS = "fields";
   
   public static final Set<String> ruleModifiersToSkip = Sets.newHashSet(
     NAME, POLICY, VERBOSITY, HostsRuleSettings.ATTRIBUTE_ACCEPT_X_FORWARDED_FOR_HEADER,
@@ -56,14 +57,16 @@ public class BlockSettings {
   private final List<RuleSettings> rules;
   private final Verbosity verbosity;
   private final Optional<String> filter;
+  private final Optional<Set<?>> fields;
   
-  private BlockSettings(String name, BlockPolicy policy, Verbosity verbosity, List<RuleSettings> rules, Optional<String> filter) {
+  private BlockSettings(String name, BlockPolicy policy, Verbosity verbosity, List<RuleSettings> rules, Optional<String> filter, Optional<Set<?>> fields) {
     validate(rules);
     this.name = name;
     this.policy = policy;
     this.verbosity = verbosity;
     this.rules = rules;
     this.filter = filter;
+    this.fields = fields;
   }
 
   public static BlockSettings from(RawSettings settings,
@@ -90,7 +93,7 @@ public class BlockSettings {
         .<SettingsMalformedException>orElseThrow(() -> new SettingsMalformedException("Unknown verbosity value: " + value)))
       .orElse(DEFAULT_VERBOSITY);
     Optional<String> filter = settings.stringOpt(FILTER);
-    
+    Optional<Set<?>> fields = settings.notEmptySetOpt(FIELDS);
     return new BlockSettings(
       name,
       policy,
@@ -99,7 +102,8 @@ public class BlockSettings {
         .filter(k -> !ruleModifiersToSkip.contains(k))
         .map(registry::create)
         .collect(Collectors.toList()),
-      filter
+      filter,
+      fields
     );
   }
 
@@ -134,5 +138,9 @@ public class BlockSettings {
   
   public Optional<String> getFilter() {
 	  return filter;
+  }
+  
+  public Optional<Set<?>> getFields() {
+	  return fields;
   }
 }

@@ -105,6 +105,10 @@ public class Block {
 	  return settings.getFilter();
   }
 
+  public Optional<Set<?>> getFields() {
+	return settings.getFields();  
+  }
+  
   public boolean isAuthHeaderAccepted() {
     return authHeaderAccepted;
   }

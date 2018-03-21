@@ -20,6 +20,7 @@ package tech.beshu.ror.es;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.elasticsearch.ElasticsearchStatusException;
@@ -187,8 +188,9 @@ public class IndexLevelActionFilter extends AbstractComponent implements ActionF
         	if (blockExitResult instanceof BlockExitResult) {
         		BlockExitResult ber = (BlockExitResult) blockExitResult;
         		Optional<String> filter = ber.getBlock().getFilter();
-        		if (filter.isPresent()) {
-        			String encodedUser = UserTransient.CreateFromFilter(filter.get()).serialize();
+        		Optional<Set<?>> fields = ber.getBlock().getFields();
+        		if (filter.isPresent() || fields.isPresent()) {
+        			String encodedUser = UserTransient.CreateFromFilter(filter.get(), (Set<String>)fields.get()).serialize();
         			if (encodedUser == null) 
 						logger.error("Error while serializing user transient");
 					if (threadPool.getThreadContext().getHeader(Constants.USER_TRANSIENT) == null) {
